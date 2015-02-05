@@ -1,0 +1,212 @@
+<head>
+  <title>Bowdoin Petitions</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+	{{>Nav}}
+	<div class="container">
+		{{>Router}}
+		<br><br><br>
+	</div>
+</body>
+
+<template name="Nav">
+	<nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button id="hamburger" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="{{pathFor 'petition.signed'}}">Bowdoin Petitions</a>
+			</div>
+			{{#if loggedIn}}
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav">
+						<li><a href="{{pathFor 'petition.manage'}}">Created</a></li>
+						<li><a href="{{pathFor 'petition.browse'}}">Browse</a></li>
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<li><button id="logout" class="btn btn-danger">Logout</button></li>
+					</ul>
+				</div>
+			{{/if}}
+		</div>
+	</nav>
+</template>
+
+<template name="SignIn">
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2 text-center">
+			<h1>Bowdoin College Online Petitioning System</h1>
+			<p>Please sign in below to continue.</p><br><br>
+			<div class="sign-in">
+				<h2 class="text-left">Sign In</h2>
+				{{#if failure}}
+					<div class="alert alert-danger">
+						Sorry, you could not be authenticated. Please try again.
+					</div>
+				{{/if}}
+				<div class="input-group">
+					<input id="username" type="text" class="form-control" placeholder="Username">
+					<span class="input-group-addon">@bowdoin.edu</span>
+				</div><br>
+				<div class="form-group">
+					<input id="password" type="password" class="form-control" placeholder="Bowdoin Password">
+				</div>
+				<button class="btn btn-primary pull-right submit-signin" type="submit">Sign In</button>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template name="SignedPetitions">
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<h2>Petitions Signed</h2>
+			<div class="list-group">
+				{{#each signed}}
+					<a class="list-group-item" href="{{pathFor 'petition.view'}}">
+						<b>{{name}}</b>
+						<span class="badge">
+								{{#if signatures}}
+									{{signatures}} signed
+								{{else}}
+									0 signed
+								{{/if}}
+						</span>
+					</a>
+				{{else}}
+					<p class="list-group-item">You have not yet signed any petitions.</p>
+				{{/each}}
+			</div>
+		</div>
+	</div>
+</template>
+
+<template name="ManagePetitions">
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<h2>Petitions Created<a class="btn btn-success pull-right" href="{{pathFor 'petition.new'}}">Create New</a></h2>
+			<ul class="list-group">
+				{{#each submitted}}
+					<li class="list-group-item clearfix">
+						<b class="petition-title">{{name}}</b>
+						<div class="btn-group petition-buttons">
+							<button class="btn btn-default" disabled>
+								{{#if signatures}}
+									{{signatures}} signed
+								{{else}}
+									0 signed
+								{{/if}}
+							</button>
+							<a class="btn btn-primary" href="{{pathFor 'petition.view'}}">View</a> 
+							<a class="btn btn-info" href="{{pathFor 'petition.edit'}}">Edit</a>
+						</div>
+					</li>
+				{{else}}
+					<li class="list-group-item">You have not yet created any petitions.</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
+</template>
+
+<template name="BrowsePetitions">
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<h2>All Petitions</h2>
+			<ul class="list-group">
+				{{#each petitions}}
+					<li class="list-group-item clearfix">
+						<b class="petition-title">{{name}}</b>
+						<div class="btn-group petition-buttons">
+							<button class="btn btn-default" disabled>
+								{{#if signatures}}
+									{{signatures}} signed
+								{{else}}
+									0 signed
+								{{/if}}
+							</button>
+							<a class="btn btn-primary" href="{{pathFor 'petition.view'}}">View</a> 
+						</div>
+					</li>
+				{{else}}
+					<li class="list-group-item">No one has created any petitions yet.</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
+</template>
+
+<template name="AddPetition">
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<h2>Create New Petition</h2>
+			<p><b>Note:</b> Petition cannot be edited once it has been signed.</p>
+			<input id="petition-name" type="text" class="form-control" placeholder="Your Petition Title" maxlength="100"><br>
+			<textarea id="petition-body" class="form-control" placeholder="Your Petition Body..." rows="10"></textarea><br>
+			<button id="petition-submit" class="btn btn-primary" type="submit">Submit</button>
+		</div>
+	</div>
+</template>
+
+<template name="ViewPetition">
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<input id="petition-id" type="hidden" value="{{_id}}">
+			<div class="input-group">
+				<span class="input-group-addon">Link</span>
+				<input id="link" readonly="readonly" type="text" class="form-control" value="{{link}}">
+			</div>
+			<h2>{{name}} <small>{{signatures}} signatures</small></h2><br>
+			<p>{{body}}</p>
+			<br>
+			Created by: {{author}}@bowdoin.edu
+			<br><br>
+			<div class="btn-group">
+				<button id="petition-sign" class="btn btn-primary" type="submit" disabled="{{isSigned _id}}">Sign Petition</button>
+				{{#if ownsPetition _id}}
+					<a class="btn btn-info" href="{{pathFor 'petition.edit'}}">Edit</a>
+					<a class="btn btn-default" href="{{pathFor 'petition.report'}}">View Report</a>
+				{{else}}
+					<button id="petition-flag" class="btn btn-danger">Flag</button>
+				{{/if}}
+			</div>
+		</div>
+	</div>
+</template>
+
+<template name="PetitionReport">
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<h2>{{name}} <small>{{signatures}} signatures</small></h2><br>
+			<p>{{body}}</p>
+			<br>
+			<h2>Signed By:</h2>
+			{{allSignerEmails _id}}
+		</div>
+	</div>
+</template>
+
+<template name="EditPetition">
+	<div class="row">
+		<div class="col-md-8 col-md-offset-2">
+			<h2>Edit Petition</h2>
+			<p><b>Note:</b> Petition cannot be edited once it has been signed.</p>
+			<input id="petition-id" type="hidden" value="{{_id}}">
+			<input id="petition-name" type="text" class="form-control" placeholder="Your Petition Title" value="{{name}}" disabled={{isSigned signatures}}><br>
+			<textarea id="petition-body" class="form-control" placeholder="Your Petition Body..." rows="10" disabled={{isSigned signatures}}>{{body}}</textarea><br>
+			<button id="petition-edit" class="btn btn-primary" type="submit" disabled="{{isSigned signatures}}">Update</button>
+			<button id="petition-remove" class="btn btn-danger">Remove</button>
+		</div>
+	</div>
+</template>
+
+<template name="Error">
+	<h2>{{code}} - {{message}}</h2>
+</template>

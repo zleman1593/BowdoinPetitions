@@ -1,0 +1,53 @@
+/* CSS declarations go here */
+a.navbar-brand {
+	color: white !important;
+	font-family: "Book Antiqua", serif;
+	font-size: 24px;
+}
+
+.sign-in {
+	max-width: 300px;
+	width: 100%;
+	margin: 0 auto;
+	padding: 1px 20px 60px 20px;
+	background: rgb(238, 238, 238);
+	border-radius: 5px;
+}
+
+.petitions-page,.petition-form {
+	max-width: 600px;
+	width: 100%;
+}
+
+#logout {
+	margin-top: 10px;
+}
+#emails, #link {
+	cursor: text;
+	background: #f9f9f9;
+	color: #666;
+}
+
+.petition-title {
+	line-height: 33px;
+	width: 100%;
+	max-width: 300px;
+	white-space: nowrap;
+	display: inline-block;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+.petition-buttons {
+	float: right;
+}
+@media screen and (max-width: 544px) {
+	.petition-buttons {
+		float: left;
+	}
+}
+
+textarea {
+  resize: none;
+	overflow-y: scroll;
+}
