@@ -27,6 +27,7 @@
 				<!-- Collect the nav links, forms, and other content for toggling -->
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 					<ul class="nav navbar-nav">
+						<li><a href="{{pathFor 'petition.signed'}}">Signed</a></li>
 						<li><a href="{{pathFor 'petition.manage'}}">Created</a></li>
 						<li><a href="{{pathFor 'petition.browse'}}">Browse</a></li>
 					</ul>
@@ -70,7 +71,7 @@
 			<h2>Petitions Signed</h2>
 			<div class="list-group">
 				{{#each signed}}
-					<a class="list-group-item" href="{{pathFor 'petition.view'}}">
+					<a class="list-group-item clearfix" href="{{pathFor 'petition.view'}}">
 						<b>{{name}}</b>
 						<span class="badge">
 								{{#if signatures}}
@@ -119,7 +120,13 @@
 <template name="BrowsePetitions">
 	<div class="row">
 		<div class="col-md-8 col-md-offset-2">
-			<h2>All Petitions</h2>
+			<h2>
+				All Petitions
+				<div class="btn-group pull-right">
+					<button id="recent" class="btn btn-default">Most Recent</button> 
+					<button id="popular" class="btn btn-success">Most Popular</button>
+				</div>
+			</h2>
 			<ul class="list-group">
 				{{#each petitions}}
 					<li class="list-group-item clearfix">
@@ -166,17 +173,33 @@
 			<h2>{{name}} <small>{{signatures}} signatures</small></h2><br>
 			<p>{{body}}</p>
 			<br>
-			Created by: {{author}}@bowdoin.edu
-			<br><br>
-			<div class="btn-group">
-				<button id="petition-sign" class="btn btn-primary" type="submit" disabled="{{isSigned _id}}">Sign Petition</button>
-				{{#if ownsPetition _id}}
-					<a class="btn btn-info" href="{{pathFor 'petition.edit'}}">Edit</a>
-					<a class="btn btn-default" href="{{pathFor 'petition.report'}}">View Report</a>
+			{{#if loggedIn}}
+				<b>Created by:</b> <a href="mailto:{{author}}@bowdoin.edu" target="_blank">{{author}}@bowdoin.edu</a>
+				<br><br>
+				<div class="btn-group">
+					{{#if isSigned _id}}
+						<button id="petition-unsign" class="btn btn-primary" type="submit">Remove Signature</button>
+					{{else}}
+						<button id="petition-sign" class="btn btn-primary" type="submit">Sign Petition</button>
+					{{/if}}
+					{{#if ownsPetition _id}}
+						<a class="btn btn-info" href="{{pathFor 'petition.edit'}}">Edit</a>
+						<a class="btn btn-default" href="{{pathFor 'petition.report'}}">View Report</a>
+					{{else}}
+						<button id="petition-flag" class="btn btn-danger">Flag</button>
+					{{/if}}
+				</div>
+				<h2>Signed By:</h2>
+				{{#each allSignerEmails _id}}
+					<div class="signer">
+						<a href="{{this}}@bowdoin.edu">{{this}}@bowdoin.edu</a>
+					</div>
 				{{else}}
-					<button id="petition-flag" class="btn btn-danger">Flag</button>
-				{{/if}}
-			</div>
+					This petition has not yet been signed.
+				{{/each}}
+			{{else}}
+				<button id="login" class="btn btn-primary">Login to Sign This Petition</button>
+			{{/if}}
 		</div>
 	</div>
 </template>

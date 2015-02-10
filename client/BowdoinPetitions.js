@@ -1,5 +1,6 @@
 Users = new Meteor.Collection("users");
 Petitions = new Meteor.Collection("petitions");
+Session.setDefault("sort", "recent");
 
 Router.onBeforeAction(function () {
 	if(!Session.get("username") || !Session.get("auth-key")) {
@@ -119,9 +120,42 @@ Template.ManagePetitions.helpers({
 	}
 });
 
+Template.BrowsePetitions.rendered = function () {
+	if(Session.get("sort") == "recent") {
+		$("#recent").addClass("active");
+		$("#popular").removeClass("active");
+	} else {
+		$("#popular").addClass("active");
+		$("#recent").removeClass("active");
+	}
+}
+
+Template.BrowsePetitions.events({
+	'click #recent': function() {
+		if(Session.get("sort") != "recent") {
+			$("#recent").addClass("active");
+			$("#popular").removeClass("active");
+
+			Session.set("sort", "recent");
+		}
+	},
+	'click #popular': function() {
+		if(Session.get("sort") != "popular") {
+			$("#popular").addClass("active");
+			$("#recent").removeClass("active");
+
+			Session.set("sort", "popular");
+		}
+	},
+});
+
 Template.BrowsePetitions.helpers({
 	petitions: function() {
-		return Petitions.find({}, { sort: {'submittedOn':-1}});
+		if(Session.get("sort") == "recent") {
+			return Petitions.find({}, { sort: {'submittedOn':-1}});
+		} else {
+			return Petitions.find({}, { sort: {'signatures':-1, 'submittedOn':-1}});
+		}
 	}
 });
 
@@ -163,6 +197,9 @@ Template.PetitionReport.helpers({
 	}
 });
 Template.ViewPetition.helpers({
+	loggedIn: function() {
+		return Session.get("username") && Session.get("auth-key");
+	},
 	link: function() {
 		return "http://bowdoinpetitions.meteor.com"+Router.current().location.get().pathname;
 	},
@@ -180,9 +217,17 @@ Template.ViewPetition.helpers({
 		var username = Session.get("username");
 		var petition = Petitions.findOne({ _id: petitionId });
 		return petition.author == username;
+	},
+	allSignerEmails: function(petitionId) {
+		var petition = Petitions.findOne({ _id: petitionId });
+		return petition.signers;
 	}
 });
 Template.ViewPetition.events({
+	'click #login': function() {
+		Session.set("return", Router.current().url);
+		Router.go("/signin");
+	},
 	'click #petition-sign': function() {
 		var key = Session.get("auth-key");
 		var username = Session.get("username");
@@ -192,6 +237,24 @@ Template.ViewPetition.events({
 				var petitionId = document.getElementById("petition-id").value;
 
 				Meteor.call("signPetition", key, username, petitionId, function(error, result) {
+					if (error) {
+						alert("Error! Could not sign petition. Please try again later.")
+					}
+				});
+			} 
+		} else {
+			Session.set("return", Router.current().url);
+			Router.go("/signin");
+		}
+	},
+	'click #petition-unsign': function() {
+		var key = Session.get("auth-key");
+		var username = Session.get("username");
+		
+		if(username && key) { //if signed in, allow signing
+			if(confirm("Are you sure you no longer want to support this petition?")) {
+				var petitionId = document.getElementById("petition-id").value;
+				Meteor.call("unsignPetition", key, username, petitionId, function(error, result) {
 					if (error) {
 						alert("Error! Could not sign petition. Please try again later.")
 					}
@@ -263,11 +326,7 @@ Template.Nav.events({
 		Router.go("/signin");
 	},
 	'click a': function() {
-		var navMain = $("#bs-example-navbar-collapse-1");
-		console.log("TEST");
-		navMain.on("click", "a", null, function () {
-			 navMain.collapse('hide');
-		});
+		$("#bs-example-navbar-collapse-1").collapse('hide');
 	}
 });
 
@@ -279,8 +338,6 @@ Template.Nav.helpers({
 		return Session.get("username");
 	}
 });
-
-
 
 authenticate = function(username, password, callback) {
 	//auth with username & password

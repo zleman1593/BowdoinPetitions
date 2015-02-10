@@ -105,7 +105,6 @@ Meteor.methods({
 				Petitions.update({ _id: petitionId }, { $inc: { "flags": 1}});
 			}
 			else if(!user) {
-				console.log("Fail");
 				Users.insert({
 					"name" : username,
 					"signed" : [],
@@ -133,6 +132,28 @@ Meteor.methods({
 						"signatures": 1
 					}, 
 					$push: { 
+						"signers": user.name
+					}
+				});
+			}
+		}
+	},
+	//if signed by user: removes from user petition history, decrements signature count on petition
+	unsignPetition: function(key, username, petitionId) {
+		if(Meteor.call("authWithKey", key, username)) {
+			var user = Users.findOne({ "name": username });
+			if(user.signed.indexOf(petitionId) != -1) {
+				Users.update({ _id: user._id }, { 
+					$pull: { 
+						"signed": petitionId 
+					}
+				});
+
+				Petitions.update({ _id: petitionId }, { 
+					$inc: { 
+						"signatures": -1
+					}, 
+					$pull: { 
 						"signers": user.name
 					}
 				});
