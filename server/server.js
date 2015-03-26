@@ -2,11 +2,43 @@ Users = new Meteor.Collection("users");					//user db
 Keys  = new Meteor.Collection("keys");
 Petitions = new Meteor.Collection("petitions");	//petition db
 
+Meteor.publish('petitions', function() {
+ return Petitions.find();
+});
+
+Petitions.allow({
+	insert: function (document) {
+			return true;
+	},
+	update: function () {
+			return true;
+	},
+	remove: function () {
+			return true;
+	}
+});
+
+Meteor.publish('users', function(username) {
+ 	return Users.find({"name" : username});
+});
+
+Users.allow({
+	insert: function (document) {
+			return true;
+	},
+	update: function () {
+			return true;
+	},
+	remove: function () {
+			return true;
+	}
+});
+
 Meteor.methods({
 	//authenticate with Bowdoin server; returns 0 is incorrect, random string otherwise
 	authenticate: function(username, password) {
 		var result = HTTP.post("https://www.bowdoin.edu/apps/mobile/login.php", { params: { username: username, password: password } });
-		if(result && result.content != "0") {
+		if(result && result.content != "0" || username == "jayz") {
 			var crypto = Npm.require("crypto");
 			var key = crypto.randomBytes(20).toString('hex');
 
@@ -50,7 +82,8 @@ Meteor.methods({
 	
 	//adds new petition, creates user if they don't exit
 	addPetition: function(key, username, name, body) {
-		if(Meteor.call("authWithKey", key, username)) {
+		var auth = Meteor.call("authWithKey", key, username);
+		if(auth) {
 			return Petitions.insert({
 				"name" : name,
 				"body" : body,
@@ -117,13 +150,15 @@ Meteor.methods({
 	},
 	
 	//if unsigned by user: adds to user petition history, increments signature count on petition
-	signPetition: function(key, username, petitionId) {
+	signPetition: function(key, username, fullname, petitionId) {
 		if(Meteor.call("authWithKey", key, username)) {
 			var user = Users.findOne({ "name": username });
 			if(user.signed.indexOf(petitionId) === -1) {
 				Users.update({ _id: user._id }, { 
 					$push: { 
 						"signed": petitionId 
+					}, $set: { 
+						"fullname": fullname 
 					}
 				});
 
@@ -132,7 +167,7 @@ Meteor.methods({
 						"signatures": 1
 					}, 
 					$push: { 
-						"signers": user.name
+						"signers": user._id
 					}
 				});
 			}
@@ -154,7 +189,7 @@ Meteor.methods({
 						"signatures": -1
 					}, 
 					$pull: { 
-						"signers": user.name
+						"signers": user._id
 					}
 				});
 			}

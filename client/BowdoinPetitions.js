@@ -1,5 +1,7 @@
 Users = new Meteor.Collection("users");
 Petitions = new Meteor.Collection("petitions");
+Meteor.subscribe('petitions');
+
 Session.setDefault("sort", "recent");
 
 Router.onBeforeAction(function () {
@@ -8,6 +10,8 @@ Router.onBeforeAction(function () {
 		Router.go('/signin');
 	}
 	else {
+		var username = Session.get("username");
+		Meteor.subscribe('users', username);
 		this.next();
 	}
 }, {
@@ -75,6 +79,10 @@ Router.route("/petitions/:_id", function () {
   var petition = Petitions.findOne({ _id: this.params._id });
 	
 	if(petition) {
+		if(Session.get("username") && Session.get("auth-key")) {
+			var username = Session.get("username");
+			Meteor.subscribe('users', username);
+		}
 		this.render('ViewPetition', { data: petition });
 	} else {
 		var error = { code: 404, message: "Petition Not Found" };
@@ -188,12 +196,14 @@ Template.AddPetition.events({
 Template.PetitionReport.helpers({
 	allSignerEmails: function(petitionId) {
 		var petition = Petitions.findOne({ _id: petitionId });
-
-		var emails = [];
+		
+		var signers = [];
 		for(var i = 0; i < petition.signers.length; i++) {
-			emails.push(petition.signers[i]+"@bowdoin.edu");
+			var user = Users.findOne({ _id: petition.signers[i] });
+			signers.push({ email: user.name+"@bowdoin.edu", name: user.fullname });
 		}
-		return emails.join(", ");
+		
+		return signers;
 	}
 });
 Template.ViewPetition.helpers({
@@ -220,7 +230,14 @@ Template.ViewPetition.helpers({
 	},
 	allSignerEmails: function(petitionId) {
 		var petition = Petitions.findOne({ _id: petitionId });
-		return petition.signers;
+		
+		var signers = [];
+		for(var i = 0; i < petition.signers.length; i++) {
+			var user = Users.findOne({ _id: petition.signers[i] });
+			signers.push({ email: user.name+"@bowdoin.edu", name: user.fullname });
+		}
+		
+		return signers;
 	}
 });
 Template.ViewPetition.events({
@@ -233,10 +250,20 @@ Template.ViewPetition.events({
 		var username = Session.get("username");
 		
 		if(username && key) { //if signed in, allow signing
-			if(confirm("Are you sure you want to support this petition?")) {
+			var user = Users.findOne({ "name": username });
+			var result = null;
+			var fullname = user.fullname;
+			if(fullname == null) {
+				fullname = prompt("Are you sure you want to support this petition? Your name and email will be visible to any Bowdoin member signed in.", "Your Full Name Here");
+				result = fullname != null && fullname != "Your Name Here";
+			} else {
+				result = confirm("Are you sure you want to support this petition? Your name and email will be visible to any Bowdoin member signed in.");
+			}
+			
+			if(result) {
 				var petitionId = document.getElementById("petition-id").value;
 
-				Meteor.call("signPetition", key, username, petitionId, function(error, result) {
+				Meteor.call("signPetition", key, username, fullname, petitionId, function(error, result) {
 					if (error) {
 						alert("Error! Could not sign petition. Please try again later.")
 					}
@@ -346,6 +373,7 @@ authenticate = function(username, password, callback) {
 			Session.set("auth-failure", false);
 			Session.set("auth-key", result);
 			Session.set("username", username);
+			Meteor.subscribe('users', username);
 			callback();
 		} else {
 			Session.set("auth-failure", true);

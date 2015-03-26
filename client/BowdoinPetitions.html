@@ -192,7 +192,8 @@
 				<h2>Signed By:</h2>
 				{{#each allSignerEmails _id}}
 					<div class="signer">
-						<a href="{{this}}@bowdoin.edu">{{this}}@bowdoin.edu</a>
+						{{name}}<br>
+						<a href="{{email}}">{{email}}</a>
 					</div>
 				{{else}}
 					This petition has not yet been signed.
@@ -211,7 +212,14 @@
 			<p>{{body}}</p>
 			<br>
 			<h2>Signed By:</h2>
-			{{allSignerEmails _id}}
+			{{#each allSignerEmails _id}}
+					<div class="signer">
+						{{name}}<br>
+						<a href="{{email}}">{{email}}</a>
+					</div>
+				{{else}}
+					This petition has not yet been signed.
+			{{/each}}
 		</div>
 	</div>
 </template>
