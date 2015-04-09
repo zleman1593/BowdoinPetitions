@@ -1,6 +1,7 @@
 <head>
   <title>Bowdoin Petitions</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+	<meta name="HandheldFriendly" content="true" />
 </head>
 
 <body>
@@ -43,10 +44,9 @@
 <template name="SignIn">
 	<div class="row">
 		<div class="col-md-8 col-md-offset-2 text-center">
-			<h1>Bowdoin College Online Petitioning System</h1>
-			<p>Please sign in below to continue.</p><br><br>
+			<h1>Bowdoin College Online Petitioning System</h1><br><br>
 			<div class="sign-in">
-				<h2 class="text-left">Sign In</h2>
+				<h3 class="text-left">Sign In<br><small>Please sign in below to continue.</small></h3>
 				{{#if failure}}
 					<div class="alert alert-danger">
 						Sorry, you could not be authenticated. Please try again.
@@ -171,7 +171,7 @@
 				<input id="link" readonly="readonly" type="text" class="form-control" value="{{link}}">
 			</div>
 			<h2>{{name}} <small>{{signatures}} signatures</small></h2><br>
-			<p>{{body}}</p>
+			<pre class="petition-display">{{body}}</pre>
 			<br>
 			{{#if loggedIn}}
 				<b>Created by:</b> <a href="mailto:{{author}}@bowdoin.edu" target="_blank">{{author}}@bowdoin.edu</a>

@@ -3,8 +3,17 @@ Keys  = new Meteor.Collection("keys");
 Petitions = new Meteor.Collection("petitions");	//petition db
 
 Meteor.publish('petitions', function() {
- return Petitions.find();
+	return Petitions.find();
 });
+
+Meteor.publish('users', function(username) {
+ 	return Users.find({"name" : username});
+});
+
+Meteor.publish('all-users', function() {
+	return Users.find({}, { fields : { signed: false, flagged: false } });
+});
+
 
 Petitions.allow({
 	insert: function (document) {
@@ -16,10 +25,6 @@ Petitions.allow({
 	remove: function () {
 			return true;
 	}
-});
-
-Meteor.publish('users', function(username) {
- 	return Users.find({"name" : username});
 });
 
 Users.allow({

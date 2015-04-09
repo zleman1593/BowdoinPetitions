@@ -184,6 +184,11 @@ Template.AddPetition.events({
 		var name = document.getElementById("petition-name").value;
 		var body = document.getElementById("petition-body").value;
 		
+		if(name.trim().length == 0 || body.trim().length == 0) {
+			alert("Sorry, you must enter a title and a body to submit a petition.");
+			return;
+		}
+		
 		var key = Session.get("auth-key");
 		var username = Session.get("username");
 		
@@ -211,7 +216,7 @@ Template.ViewPetition.helpers({
 		return Session.get("username") && Session.get("auth-key");
 	},
 	link: function() {
-		return "http://bowdoinpetitions.meteor.com"+Router.current().location.get().pathname;
+		return "http://bowdoinpetitions.com"+Router.current().location.get().pathname;
 	},
 	isSigned: function(petitionId) {
 		var username = Session.get("username");
@@ -229,12 +234,16 @@ Template.ViewPetition.helpers({
 		return petition.author == username;
 	},
 	allSignerEmails: function(petitionId) {
+		Meteor.subscribe('all-users');
 		var petition = Petitions.findOne({ _id: petitionId });
 		
 		var signers = [];
 		for(var i = 0; i < petition.signers.length; i++) {
 			var user = Users.findOne({ _id: petition.signers[i] });
-			signers.push({ email: user.name+"@bowdoin.edu", name: user.fullname });
+			
+			if(user) {
+				signers.push({ email: user.name+"@bowdoin.edu", name: user.fullname });
+			}
 		}
 		
 		return signers;
@@ -252,10 +261,13 @@ Template.ViewPetition.events({
 		if(username && key) { //if signed in, allow signing
 			var user = Users.findOne({ "name": username });
 			var result = null;
-			var fullname = user.fullname;
-			if(fullname == null) {
-				fullname = prompt("Are you sure you want to support this petition? Your name and email will be visible to any Bowdoin member signed in.", "Your Full Name Here");
-				result = fullname != null && fullname != "Your Name Here";
+			var fullname = "";
+			if(user != null && user.fullname != null)
+				fullname = user.fullname.trim() 
+				
+			if(!isNameValid(fullname)) {
+				fullname = prompt("Are you sure you want to support this petition? Your name and email will be visible to any Bowdoin member signed in.", "Your Full Name Here").trim();
+				result = isNameValid(fullname);
 			} else {
 				result = confirm("Are you sure you want to support this petition? Your name and email will be visible to any Bowdoin member signed in.");
 			}
@@ -268,7 +280,9 @@ Template.ViewPetition.events({
 						alert("Error! Could not sign petition. Please try again later.")
 					}
 				});
-			} 
+			} else if(!isNameValid(fullname)){
+				alert("You did not enter a valid name, so this petition has not been signed.");
+			}
 		} else {
 			Session.set("return", Router.current().url);
 			Router.go("/signin");
@@ -299,6 +313,10 @@ Template.ViewPetition.events({
 		document.getElementById("emails").select();
 	}
 });
+
+function isNameValid(fullname) {
+	return !(fullname == null || fullname == "" || fullname == "Your Full Name Here" || fullname == "Ruben Martinez Jr.");
+}
 
 Template.EditPetition.events({
 	'click #petition-edit': function() {
@@ -360,9 +378,6 @@ Template.Nav.events({
 Template.Nav.helpers({
 	loggedIn: function() {
 		return Session.get("username") && Session.get("auth-key");
-	},
-	username: function() {
-		return Session.get("username");
 	}
 });
 
