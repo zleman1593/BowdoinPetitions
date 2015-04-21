@@ -1,6 +1,3 @@
-Users = new Meteor.Collection("users");					//user db
-Keys  = new Meteor.Collection("keys");
-Petitions = new Meteor.Collection("petitions");	//petition db
 
 Meteor.publish('petitions', function() {
 	return Petitions.find();
@@ -14,30 +11,6 @@ Meteor.publish('all-users', function() {
 	return Users.find({}, { fields : { signed: false, flagged: false } });
 });
 
-
-Petitions.allow({
-	insert: function (document) {
-			return true;
-	},
-	update: function () {
-			return true;
-	},
-	remove: function () {
-			return true;
-	}
-});
-
-Users.allow({
-	insert: function (document) {
-			return true;
-	},
-	update: function () {
-			return true;
-	},
-	remove: function () {
-			return true;
-	}
-});
 
 Meteor.methods({
 	//authenticate with Bowdoin server; returns 0 is incorrect, random string otherwise
