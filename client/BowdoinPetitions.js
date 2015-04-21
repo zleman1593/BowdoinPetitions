@@ -388,7 +388,7 @@ authenticate = function(username, password, callback) {
 			Session.set("auth-failure", false);
 			Session.set("auth-key", result);
 			Session.set("username", username);
-			Meteor.subscribe('users', username);
+			Meteor.subscribe('users', result,username);
 			callback();
 		} else {
 			Session.set("auth-failure", true);
