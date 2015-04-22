@@ -1,5 +1,3 @@
-Users = new Meteor.Collection("users");
-Petitions = new Meteor.Collection("petitions");
 Meteor.subscribe('petitions');
 
 Session.setDefault("sort", "recent");
